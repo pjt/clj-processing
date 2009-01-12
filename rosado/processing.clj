@@ -809,9 +809,15 @@
 (defmacro with-p
    "Executes body in an environment where *applet* is bound to \"this\",
    captured from the calling environment -- the main use, therefore, is 
-   inside (proxy) methods. Optionally, give a symbol bound to an instance 
-   of processing.core.PApplet as the first argument, & *applet* will be 
-   bound to that instead of \"this\"."
+   inside (proxy) methods. Optionally, given a first argument of a symbol 
+   bound to an instance of processing.core.PApplet, *applet* will be 
+   bound to that instead of \"this\".
+   
+   E.g.
+      (proxy [PApplet] []
+         (setup []
+            (with-p
+               (size 500 500))))"
    [& body]
    (if (symbol? (first body))
       `(binding [*applet* ~(first body)]
