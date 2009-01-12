@@ -806,6 +806,19 @@
 
 ;; utility functions. clj-processing specific
 
+(defmacro with-p
+   "Executes body in an environment where *applet* is bound to \"this\",
+   captured from the calling environment -- the main use, therefore, is 
+   inside (proxy) methods. Optionally, give a symbol bound to an instance 
+   of processing.core.PApplet as the first argument, & *applet* will be 
+   bound to that instead of \"this\"."
+   [& body]
+   (if (symbol? (first body))
+      `(binding [*applet* ~(first body)]
+         (do ~@(rest body)))
+      `(binding [*applet* ~'this]
+         (do ~@body))))
+
 (defmacro with-translation
 	"Berforms body with translation, restores current transformation on exit."
 	[translation-vector & body]
@@ -828,3 +841,5 @@
 		 (apply rotate tr#)
 		 ~@body
 		 (pop-matrix)))
+
+

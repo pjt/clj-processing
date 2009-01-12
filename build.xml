@@ -1,23 +1,62 @@
 <project name="clojure-processing" default="jar">
 
   <description>
-    Pack all rosado.processing sources into a JAR.
+    Pack all rosado.processing sources into a JAR. If clojure.jar
+    and Processing's core.jar are given -- either as 
+    -Dclojure.jar=path/to/clojure.jar or in a local.properties 
+    file -- compile the ns, too.
   </description>
 
   <!-- The JAR file to create. -->
+  <property name="src" location="."/>
+  <property name="build" location="classes"/>
   <property name="jarfile" location="rosado.processing.jar"/>
+  <property file="local.properties"/>
+  <available property="hasclojure" file="${clojure.jar}"/>
+  <available property="hascore" file="${core.jar}"/>
+
+  <target name="checkforjars" depends="init">
+    <condition property="hasjars">
+      <and>
+        <isset property="hasclojure"/>
+        <isset property="hascore"/>
+      </and>
+    </condition>
+  </target>
+
+  <target name="init" depends="clean">
+    <tstamp/>
+    <mkdir dir="${build}"/>
+  </target>
 
   <target name="clean"
           description="Remove generated files and directories.">
-    <delete file="${jarfile}"/>
+    <delete dir="${build}"/>
   </target>
 
-  <target name="jar"
+  <target name="compile" depends="checkforjars"
+          description="Compile sources."
+          if="hasjars">
+    <java classname="clojure.lang.Compile">
+      <classpath>
+        <path location="${build}"/>
+        <path location="${src}"/>
+        <path location="${clojure.jar}"/>
+        <path location="${core.jar}"/>
+      </classpath>
+      <sysproperty key="clojure.compile.path" value="${build}"/>
+      <arg value="rosado.processing"/>
+    </java>
+  </target>
+
+  <target name="jar" depends="compile"
           description="Create jar file.">
     <jar jarfile="${jarfile}">
       <fileset dir="." includes="CPL.TXT"/>
       <fileset dir="." includes="rosado/**/*.clj"/>
+      <fileset dir="${build}" includes="**/*.class"/>
     </jar>
   </target>
 
 </project>
+
